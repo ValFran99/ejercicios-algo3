@@ -42,7 +42,7 @@ test02RemovingCustomerShouldNotTakeMoreThan100Milliseconds
 	
 ! !
 
-!CustomerBookTest methodsFor: 'tests' stamp: 'Fv 5/18/2021 16:57:30'!
+!CustomerBookTest methodsFor: 'tests' stamp: 'Fv 5/19/2021 11:20:32'!
 test03CanNotAddACustomerWithEmptyName 
 
 	| customerBook |
@@ -51,11 +51,11 @@ test03CanNotAddACustomerWithEmptyName
 
 	self tryToDoThisBlock: [ customerBook addCustomerNamed: ''. self fail ]
 		watchOutForThis: Error 
-		ifThatHappensDo: [ :anError |
+		ifThatHappensDoThisBlock: [ :anError |
 			self assert: anError messageText = CustomerBook customerCanNotBeEmptyErrorMessage.
 			self assert: customerBook isEmpty ].! !
 
-!CustomerBookTest methodsFor: 'tests' stamp: 'Fv 5/18/2021 17:05:35'!
+!CustomerBookTest methodsFor: 'tests' stamp: 'Fv 5/19/2021 11:43:48'!
 test04CanNotRemoveAnInvalidCustomer
 	
 	| customerBook johnLennon |
@@ -65,9 +65,9 @@ test04CanNotRemoveAnInvalidCustomer
 	
 	self tryToDoThisBlock: [ customerBook removeCustomerNamed: 'Paul McCartney'. self fail ] 
 		watchOutForThis: NotFound  
-		ifThatHappensDo: [ :anError | 
-			self assertThatIn: customerBook thereIsATotalOfActiveCustomers: 1 andThatThisCustomerExists: johnLennon.
-			 ]
+		ifThatHappensDoThisBlock: [ :anError | 
+			self assertThatIn: customerBook thereIsThisAmountOfActiveCustomers: 1 andThatThisCustomerExists: 																						johnLennon.
+			]
 	
 	
 		
@@ -104,7 +104,7 @@ test06RemovingASuspendedCustomerShouldRemoveItFromCustomerBook
 	
 ! !
 
-!CustomerBookTest methodsFor: 'tests' stamp: 'Fv 5/18/2021 17:08:42'!
+!CustomerBookTest methodsFor: 'tests' stamp: 'Fv 5/19/2021 11:31:16'!
 test07CanNotSuspendAnInvalidCustomer
 	
 	| customerBook johnLennon |
@@ -112,14 +112,10 @@ test07CanNotSuspendAnInvalidCustomer
 	johnLennon := 'John Lennon'.	
 	customerBook := self createABookAndAdd: johnLennon.
 	
-	self tryToDoThisBlock: [ customerBook suspendCustomerNamed: 'Ringo Starr'. self fail ]
-		watchOutForThis: CantSuspend
-		ifThatHappensDo: [ :anError |
-			self assertThatIn: customerBook thereIsATotalOfActiveCustomers: 1 andThatThisCustomerExists: johnLennon.
-			]
+	self assertThatIn: customerBook youCantSuspendThisCustomer: 'Ringo Starr' thereIsThisAmountOfActiveCustomers: 1 andCheckIfThisCustomerExists: johnLennon.
 ! !
 
-!CustomerBookTest methodsFor: 'tests' stamp: 'Fv 5/18/2021 17:08:51'!
+!CustomerBookTest methodsFor: 'tests' stamp: 'Fv 5/19/2021 11:31:57'!
 test08CanNotSuspendAnAlreadySuspendedCustomer
 	
 	| customerBook johnLennon |
@@ -127,11 +123,7 @@ test08CanNotSuspendAnAlreadySuspendedCustomer
 	johnLennon := 'John Lennon'.
 	customerBook := self createABookAndAddAndSuspend: johnLennon.
 	
-	self tryToDoThisBlock: [ customerBook suspendCustomerNamed: johnLennon. self fail ]
-		watchOutForThis: CantSuspend
-		ifThatHappensDo: [ :anError | 
-			self assertThatIn: customerBook thereIsATotalOfActiveCustomers: 1 andThatThisCustomerExists: johnLennon.
-			]! !
+	self assertThatIn: customerBook youCantSuspendThisCustomer: johnLennon thereIsThisAmountOfActiveCustomers: 1 andCheckIfThisCustomerExists: johnLennon.! !
 
 
 !CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/18/2021 10:45:46'!
@@ -140,10 +132,10 @@ assertThat: blockOfCodeToMeasureTimeTo runsInLessThan: time
 	
 	self assert: blockOfCodeToMeasureTimeTo timeToRun < time.! !
 
-!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/18/2021 17:04:53'!
-assertThatIn: customerBook thereIsATotalOfActiveCustomers: numberOfExpectedCustomers andThatThisCustomerExists: customerNameToCheck 
+!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/19/2021 10:59:43'!
+assertThatIn: customerBook thereIsThisAmountOfActiveCustomers: numberOfExpectedActiveCustomers andThatThisCustomerExists: customerNameToCheck 
 
-	self assert: customerBook numberOfCustomers = numberOfExpectedCustomers.
+	self assert: customerBook numberOfCustomers = numberOfExpectedActiveCustomers.
 	self assert: (customerBook includesCustomerNamed: customerNameToCheck)! !
 
 !CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/18/2021 17:07:07'!
@@ -153,47 +145,51 @@ assertThatIn: customerBook thereIsThisAmountOfActiveCustomers: activeCustomers s
 	self assert: suspendedCustomers equals: customerBook numberOfSuspendedCustomers.
 	self assert: totalCustomers equals: customerBook numberOfCustomers.! !
 
-!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/18/2021 10:54:57'!
-createABookAndAdd: aCustomer
+!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/19/2021 11:28:58'!
+assertThatIn: customerBook youCantSuspendThisCustomer: customerToSuspend thereIsThisAmountOfActiveCustomers: expectedAmountOfActiveCustomers andCheckIfThisCustomerExists: customerToCheckIfExist
+
+	self tryToDoThisBlock: [ customerBook suspendCustomerNamed: customerToSuspend. self fail ]
+		watchOutForThis: CantSuspend
+		ifThatHappensDoThisBlock: [ :anError |
+			self assertThatIn: customerBook thereIsThisAmountOfActiveCustomers: 1 andThatThisCustomerExists: 																			customerToCheckIfExist.
+			]! !
+
+!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/19/2021 11:06:58'!
+createABookAndAdd: customerToAdd
 
 	| customerBook | 
 
 	customerBook := CustomerBook new.
-	customerBook addCustomerNamed: aCustomer.
+	customerBook addCustomerNamed: customerToAdd.
 	
 	^customerBook.! !
 
-!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/18/2021 10:52:12'!
-createABookAndAddAndSuspend: aCustomer
+!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/19/2021 11:07:14'!
+createABookAndAddAndSuspend: customerToAddAndSuspend
 	
 	| customerBook |
 	
-	customerBook := CustomerBook new.
-	
-	customerBook addCustomerNamed: aCustomer.
-	customerBook suspendCustomerNamed: aCustomer.
+	customerBook := self createABookAndAdd: customerToAddAndSuspend.	
+	customerBook suspendCustomerNamed: customerToAddAndSuspend.
 	
 	^customerBook.! !
 
-!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/18/2021 11:09:33'!
-createABookAndAddSuspendAndRemove: aCustomer
+!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/19/2021 11:07:31'!
+createABookAndAddSuspendAndRemove: customerToAddSuspendAndRemove
 	
 	| customerBook |
 	
-	customerBook := CustomerBook new.
-	
-	customerBook addCustomerNamed: aCustomer.
-	customerBook suspendCustomerNamed: aCustomer.
-	customerBook removeCustomerNamed: aCustomer.
+	customerBook := self createABookAndAddAndSuspend: customerToAddSuspendAndRemove.
+	customerBook removeCustomerNamed: customerToAddSuspendAndRemove.
 	
 	^customerBook.! !
 
-!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/18/2021 16:53:50'!
-tryToDoThisBlock: blockOfCodeToTry watchOutForThis: errorToWatch ifThatHappensDo: blockToExecuteInCaseOfError
+!CustomerBookTest methodsFor: 'helpers' stamp: 'Fv 5/19/2021 11:20:32'!
+tryToDoThisBlock: blockOfCodeToTry watchOutForThis: errorToWatch ifThatHappensDoThisBlock: blockToDoInCaseOfError
 
 	blockOfCodeToTry
 			on: errorToWatch
-			do: blockToExecuteInCaseOfError ! !
+			do: blockToDoInCaseOfError ! !
 
 
 !classDefinition: #CustomerBook category: 'CodigoRepetido-Ejercicio'!
